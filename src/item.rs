@@ -28,6 +28,15 @@ use std::cmp::PartialEq;
         }
     }
 
+    impl Clone for Item {
+        fn clone(&self) -> Self {
+            Item {
+                name: self.name.to_string(),
+                cook_time: self.cook_time
+            }
+        }
+    }
+
     fn min_to_sec(min: u32) -> u32 {
         min * 60
     }
