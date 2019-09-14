@@ -35,7 +35,7 @@ impl Restaurant{
 
     pub fn remove_item(&mut self, table: u8, item: item::Item) -> &Vec<item::Item> {
         if let Some(items) = self.tables.get_mut(&table) {
-            items.retain(|it| it != &item);
+            items.retain(|it| *it != item);
         }
         self.items_from_table(table)
     }
