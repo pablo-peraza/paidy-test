@@ -12,13 +12,9 @@ impl Item{
     pub fn new(name: &str) -> Item {
         Item {
             name: name.to_owned(),
-            cook_time: rand::thread_rng().gen_range(5, 15)
+            cook_time: rand::thread_rng().gen_range(5, 16)
         }
     }
-
-    pub fn cook_time_seconds(&self) -> u32 {
-            min_to_sec(self.cook_time)
-        }
 }
 
 impl PartialEq for Item {
@@ -37,29 +33,10 @@ impl Clone for Item {
     }
 }
 
-fn min_to_sec(min: u32) -> u32 {
-    min * 60
-}
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn min_to_sec_0_min() {
-        assert_eq!(min_to_sec(0), 0);
-    }
-
-    #[test]
-    fn min_to_sec_1_min() {
-        assert_eq!(min_to_sec(1), 60);
-    }
-
-    #[test]
-    fn min_to_sec_5_min() {
-        assert_eq!(min_to_sec(5), 300);
-    }
 
     #[test]
     fn item_creation() {
