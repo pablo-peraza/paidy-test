@@ -1,9 +1,9 @@
-use std::sync::{Mutex, Arc};
-use std::thread;
 use rand::Rng;
-mod item;
-mod database;
+use std::sync::{Arc, Mutex};
+use std::thread;
 mod client;
+mod database;
+mod item;
 
 fn main() {
     let restaurant = Arc::new(Mutex::new(database::Restaurant::new()));
@@ -20,8 +20,11 @@ fn main() {
                         println!("Job #{:?} for waitress #{}", i, client.id);
                         client.do_job(val);
                         thread::sleep(client.wait_some_time());
-                    },
-                    Err(_) => println!("Kitchen was busy and didn't listen to waitress #{}", client.id)
+                    }
+                    Err(_) => println!(
+                        "Kitchen was busy and didn't listen to waitress #{}",
+                        client.id
+                    ),
                 };
             }
         });
@@ -31,6 +34,4 @@ fn main() {
     for handle in handles {
         handle.join().unwrap();
     }
-
 }
-
