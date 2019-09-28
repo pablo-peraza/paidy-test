@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 pub struct Restaurant {
-    empty: Vec<item::Item>,
     tables: HashMap<u8, Vec<item::Item>>,
 }
 
@@ -19,8 +18,7 @@ impl Restaurant {
 
     pub fn new() -> Restaurant {
         Restaurant {
-            tables: HashMap::new(),
-            empty: Vec::new(),
+            tables: HashMap::new()
         }
     }
 
@@ -34,13 +32,13 @@ impl Restaurant {
                 .iter()
                 .map(|x| (if x._id == item_id { &item } else { x }).clone() )
                 .collect()
-        }).and_then(|items| self.replaceWhole(table, items, Action::Updated) )
+        }).and_then(|items| self.replace_whole(table, items, Action::Updated) )
     }
 
     pub fn add_items(&mut self, table: u8, items: Vec<item::Item>) -> Result<Action, String> {
         let result = self.map(table, |old_items| [old_items, &items[..]].concat());
         match result {
-            Err(_) => self.replaceWhole(table, items, Action::Inserted),
+            Err(_) => self.replace_whole(table, items, Action::Inserted),
             _ => Ok(Action::Inserted)
         }
     }
@@ -51,7 +49,7 @@ impl Restaurant {
                 .filter(|x| x._id == item_id)
                 .map(|x| x.clone())
                 .collect()
-        }).and_then(|items| self.replaceWhole(table, items, Action::Deleted))
+        }).and_then(|items| self.replace_whole(table, items, Action::Deleted))
     }
 
     fn map<T>(&self, table: u8, mut op: impl FnMut(&Vec<item::Item>) -> T) -> Result<T, String> {
@@ -61,7 +59,7 @@ impl Restaurant {
         }
     }
 
-    fn replaceWhole(&self, table: u8, items: Vec<item::Item>, action: Action) -> Result<Action, String>{
+    fn replace_whole(&mut self, table: u8, items: Vec<item::Item>, action: Action) -> Result<Action, String>{
         self.tables.insert(table, items);
         Ok(action)
     }
@@ -75,259 +73,172 @@ mod tests {
     #[test]
     fn items_from_table_empty() {
         let res = Restaurant::new();
-        let expected: Vec<item::Item> = Vec::new();
-        assert_eq!(res.items_from_table(1), &expected);
+        let expected = Some("Table is empty".to_string());
+        assert_eq!(expected, res.items_from_table(1).err());
     }
 
     #[test]
     fn items_from_table_non_empty() {
         let mut res = Restaurant::new();
-        res.tables.insert(
-            1,
-            vec![Item {
-                name: "Test 1".to_string(),
-                cook_time: 15,
-            }],
-        );
-        let expected = vec![Item {
-            name: "Test 1".to_string(),
-            cook_time: 15,
-        }];
-        assert_eq!(res.items_from_table(1), &expected);
+        let item = Item::new("Test 1");
+        res.tables.insert(1, vec![item.clone()]);
+        let expected = vec![item];
+        match res.items_from_table(1) {
+            Ok(Action::Data(items)) => assert_eq!(items, expected),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        }
     }
 
     #[test]
     fn add_items_to_new_table() {
         let mut res = Restaurant::new();
-        res.add_items(
-            1,
-            vec![Item {
-                name: "Test 1".to_string(),
-                cook_time: 15,
-            }],
-        );
-        let expected = vec![Item {
-            name: "Test 1".to_string(),
-            cook_time: 15,
-        }];
-        assert_eq!(res.items_from_table(1), &expected);
+        let item = Item::new("Test 1");
+        match res.add_items(1, vec![item.clone()]) {
+            Ok(Action::Inserted) => assert!(true),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        };
+        let expected = vec![item];
+        match res.items_from_table(1) {
+            Ok(Action::Data(items)) => assert_eq!(items, expected),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        }
     }
 
     #[test]
     fn add_items_to_empty_table() {
         let mut res = Restaurant::new();
+        let item = Item::new("Test 1");
         res.tables.insert(1, Vec::new());
-        res.add_items(
-            1,
-            vec![Item {
-                name: "Test 1".to_string(),
-                cook_time: 15,
-            }],
-        );
-        let expected = vec![Item {
-            name: "Test 1".to_string(),
-            cook_time: 15,
-        }];
-        assert_eq!(res.items_from_table(1), &expected);
+        match res.add_items(1, vec![item.clone()]) {
+            Ok(Action::Inserted) => assert!(true),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        };
+        let expected = vec![item];
+        match res.items_from_table(1) {
+            Ok(Action::Data(items)) => assert_eq!(items, expected),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        }
     }
 
     #[test]
     fn add_items_to_non_empty_table() {
         let mut res = Restaurant::new();
-        res.tables.insert(
-            1,
-            vec![Item {
-                name: "Test 1".to_string(),
-                cook_time: 10,
-            }],
-        );
-        res.add_items(
-            1,
-            vec![Item {
-                name: "Test 2".to_string(),
-                cook_time: 15,
-            }],
-        );
-        let expected = vec![
-            Item {
-                name: "Test 1".to_string(),
-                cook_time: 10,
-            },
-            Item {
-                name: "Test 2".to_string(),
-                cook_time: 15,
-            },
-        ];
-        assert_eq!(res.items_from_table(1), &expected);
+        let item = Item::new("Test 1");
+        let item2 = Item::new("Test 2");
+        res.tables.insert(1,vec![item.clone()]);
+        match res.add_items(1, vec![item.clone()]) {
+            Ok(Action::Inserted) => assert!(true),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        };
+        let expected = vec![item, item2];
+        match res.items_from_table(1) {
+            Ok(Action::Data(items)) => assert_eq!(items, expected),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        }
     }
 
     #[test]
     fn remove_items_from_new_table() {
         let mut res = Restaurant::new();
-        res.remove_item(
-            1,
-            Item {
-                name: "Test 1".to_string(),
-                cook_time: 15,
-            },
-        );
-        let expected: Vec<Item> = Vec::new();
-        assert_eq!(res.items_from_table(1), &expected);
+        res.remove_item(1, Item::new("Test 1")._id);
+        match res.items_from_table(1) {
+            Err(s) => assert!(true),
+            Ok(_) => assert!(false)
+        }
+
     }
 
     #[test]
     fn remove_items_from_empty_table() {
         let mut res = Restaurant::new();
         res.tables.insert(1, Vec::new());
-        res.remove_item(
-            1,
-            Item {
-                name: "Test 1".to_string(),
-                cook_time: 15,
-            },
-        );
-        let expected: Vec<Item> = Vec::new();
-        assert_eq!(res.items_from_table(1), &expected);
+        res.remove_item(1, Item::new("Test 1")._id);
+        match res.items_from_table(1) {
+            Err(s) => assert!(true),
+            Ok(_) => assert!(false)
+        }
     }
 
     #[test]
     fn remove_items_from_non_empty_table_jto_empty() {
         let mut res = Restaurant::new();
-        res.tables.insert(
-            1,
-            vec![Item {
-                name: "Test 1".to_string(),
-                cook_time: 10,
-            }],
-        );
-        res.remove_item(
-            1,
-            Item {
-                name: "Test 1".to_string(),
-                cook_time: 10,
-            },
-        );
-        let expected: Vec<Item> = Vec::new();
-        assert_eq!(res.items_from_table(1), &expected);
+        let item = Item::new("Test 1");
+        res.tables.insert(1,vec![item.clone()]);
+        match res.remove_item(1, item._id) {
+            Ok(Action::Deleted) => assert!(true),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        };
+        match res.items_from_table(1) {
+            Err(s) => assert!(true),
+            Ok(_) => assert!(false)
+        }
     }
 
     #[test]
     fn remove_items_from_non_empty_table_begining() {
         let mut res = Restaurant::new();
-        res.tables.insert(
-            1,
-            vec![
-                Item {
-                    name: "Test 1".to_string(),
-                    cook_time: 10,
-                },
-                Item {
-                    name: "Test 2".to_string(),
-                    cook_time: 15,
-                },
-                Item {
-                    name: "Test 3".to_string(),
-                    cook_time: 5,
-                },
-            ],
-        );
-        res.remove_item(
-            1,
-            Item {
-                name: "Test 1".to_string(),
-                cook_time: 10,
-            },
-        );
-        let expected = vec![
-            Item {
-                name: "Test 2".to_string(),
-                cook_time: 15,
-            },
-            Item {
-                name: "Test 3".to_string(),
-                cook_time: 5,
-            },
-        ];
-        assert_eq!(res.items_from_table(1), &expected);
+        let item = Item::new("Test 1");
+        let item2 = Item::new("Test 2");
+        let item3 = Item::new("Test 3");
+        res.tables.insert(1,vec![item.clone(), item2.clone(), item3.clone()]);
+        let expected = vec![item2, item3];
+        match res.remove_item(1, item._id) {
+            Ok(Action::Deleted) => assert!(true),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        };
+        match res.items_from_table(1) {
+            Err(s) => assert!(false),
+            Ok(Action::Data(items)) => assert_eq!(expected, items),
+            _a => panic!("This isn't right")
+        }
     }
 
     #[test]
     fn remove_items_from_non_empty_table_middle() {
         let mut res = Restaurant::new();
-        res.tables.insert(
-            1,
-            vec![
-                Item {
-                    name: "Test 1".to_string(),
-                    cook_time: 10,
-                },
-                Item {
-                    name: "Test 2".to_string(),
-                    cook_time: 15,
-                },
-                Item {
-                    name: "Test 3".to_string(),
-                    cook_time: 5,
-                },
-            ],
-        );
-        res.remove_item(
-            1,
-            Item {
-                name: "Test 2".to_string(),
-                cook_time: 15,
-            },
-        );
-        let expected = vec![
-            Item {
-                name: "Test 1".to_string(),
-                cook_time: 10,
-            },
-            Item {
-                name: "Test 3".to_string(),
-                cook_time: 5,
-            },
-        ];
-        assert_eq!(res.items_from_table(1), &expected);
+        let item = Item::new("Test 1");
+        let item2 = Item::new("Test 2");
+        let item3 = Item::new("Test 3");
+        res.tables.insert(1,vec![item.clone(), item2.clone(), item3.clone()]);
+        let expected = vec![item, item3];
+        match res.remove_item(1, item2._id) {
+            Ok(Action::Deleted) => assert!(true),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        };
+        match res.items_from_table(1) {
+            Err(s) => assert!(false),
+            Ok(Action::Data(items)) => assert_eq!(expected, items),
+            _a => panic!("This isn't right")
+        }
     }
 
     #[test]
     fn remove_items_from_non_empty_table_ending() {
         let mut res = Restaurant::new();
-        res.tables.insert(
-            1,
-            vec![
-                Item {
-                    name: "Test 1".to_string(),
-                    cook_time: 10,
-                },
-                Item {
-                    name: "Test 2".to_string(),
-                    cook_time: 15,
-                },
-                Item {
-                    name: "Test 3".to_string(),
-                    cook_time: 5,
-                },
-            ],
-        );
-        res.remove_item(
-            1,
-            Item {
-                name: "Test 3".to_string(),
-                cook_time: 5,
-            },
-        );
-        let expected = vec![
-            Item {
-                name: "Test 1".to_string(),
-                cook_time: 10,
-            },
-            Item {
-                name: "Test 2".to_string(),
-                cook_time: 15,
-            },
-        ];
-        assert_eq!(res.items_from_table(1), &expected);
+        let item = Item::new("Test 1");
+        let item2 = Item::new("Test 2");
+        let item3 = Item::new("Test 3");
+        res.tables.insert(1,vec![item.clone(), item2.clone(), item3.clone()]);
+        let expected = vec![item, item2];
+        match res.remove_item(1, item3._id) {
+            Ok(Action::Deleted) => assert!(true),
+            Err(_) => assert!(false),
+            _a => panic!("This isn't right")
+        };
+        match res.items_from_table(1) {
+            Err(s) => assert!(false),
+            Ok(Action::Data(items)) => assert_eq!(expected, items),
+            _a => panic!("This isn't right")
+        }
     }
 }

@@ -1,4 +1,4 @@
-use super::{database::Restaurant, item::Item};
+use super::{database::Restaurant, item::Item, database::Action};
 use rand::Rng;
 use std::time::Duration;
 
@@ -62,14 +62,25 @@ impl Client {
                 );
             }
             ClientActions::RemoveItem => {
+                let items = restaurant.items_from_table(table);
                 println!(
                     "Oops! Made a mistake with table #{}. Need to remove a chicken curry from {:?}",
                     table,
-                    restaurant.items_from_table(table)
+                    items
                 );
-                let it = Item::new("Chicken Curry");
-                let items = restaurant.remove_item(table, it.clone());
-                println!("Table #{} items now are {:?}", table, items);
+                match items{
+                    Ok(Action::Data(mut _items)) => {
+                        match _items.pop(){
+                            Some(item) => {
+                                restaurant.remove_item(table, item._id);
+                            },
+                            None => println!("Huh, that's weird")
+                        }
+
+                    },
+                    Err(err) => println!("Nope {}", err),
+                    _ => panic!("That wasn't supposed to happen")
+                }
             }
         };
         println!(
