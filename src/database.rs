@@ -147,9 +147,13 @@ mod tests {
     #[test]
     fn remove_items_from_new_table() {
         let mut res = Restaurant::new();
-        res.remove_item(1, Item::new("Test 1")._id);
+        match res.remove_item(1, Item::new("Test 1")._id){
+            Ok(Action::Deleted) => assert!(false),
+            Err(_) => assert!(true),
+            _a => panic!("This isn't right")
+        };
         match res.items_from_table(1) {
-            Err(s) => assert!(true),
+            Err(_) => assert!(true),
             Ok(_) => assert!(false)
         }
 
@@ -159,9 +163,13 @@ mod tests {
     fn remove_items_from_empty_table() {
         let mut res = Restaurant::new();
         res.tables.insert(1, Vec::new());
-        res.remove_item(1, Item::new("Test 1")._id);
+        match res.remove_item(1, Item::new("Test 1")._id){
+            Ok(Action::Deleted) => assert!(false),
+            Err(_) => assert!(true),
+            _a => panic!("This isn't right")
+        };
         match res.items_from_table(1) {
-            Err(s) => assert!(true),
+            Err(_) => assert!(true),
             Ok(_) => assert!(false)
         }
     }
@@ -177,7 +185,7 @@ mod tests {
             _a => panic!("This isn't right")
         };
         match res.items_from_table(1) {
-            Err(s) => assert!(true),
+            Err(_) => assert!(true),
             Ok(_) => assert!(false)
         }
     }
@@ -196,7 +204,7 @@ mod tests {
             _a => panic!("This isn't right")
         };
         match res.items_from_table(1) {
-            Err(s) => assert!(false),
+            Err(_) => assert!(false),
             Ok(Action::Data(items)) => assert_eq!(expected, items),
             _a => panic!("This isn't right")
         }
@@ -216,7 +224,7 @@ mod tests {
             _a => panic!("This isn't right")
         };
         match res.items_from_table(1) {
-            Err(s) => assert!(false),
+            Err(_) => assert!(false),
             Ok(Action::Data(items)) => assert_eq!(expected, items),
             _a => panic!("This isn't right")
         }
@@ -236,7 +244,7 @@ mod tests {
             _a => panic!("This isn't right")
         };
         match res.items_from_table(1) {
-            Err(s) => assert!(false),
+            Err(_) => assert!(false),
             Ok(Action::Data(items)) => assert_eq!(expected, items),
             _a => panic!("This isn't right")
         }

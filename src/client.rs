@@ -72,7 +72,11 @@ impl Client {
                     Ok(Action::Data(mut _items)) => {
                         match _items.pop(){
                             Some(item) => {
-                                restaurant.remove_item(table, item._id);
+                                match restaurant.remove_item(table, item._id){
+                                    Ok(Action::Deleted) => println!("Item deleted"),
+                                    Err(_) => panic!("This isn't right"),
+                                    _a => panic!("This isn't right")
+                                };
                             },
                             None => println!("Huh, that's weird")
                         }
