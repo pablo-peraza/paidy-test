@@ -44,12 +44,15 @@ impl Restaurant {
     }
 
     pub fn remove_item(&mut self, table: u8, item_id: Uuid) -> Result<Action, String> {
-        self.map(table, |items| -> Vec<item::Item> {
+        let result = self.map(table, |items| -> Vec<item::Item> {
             items.iter()
-                .filter(|x| x._id == item_id)
+                .filter(|x| x._id != item_id)
                 .map(|x| x.clone())
                 .collect()
-        }).and_then(|items| self.replace_whole(table, items, Action::Deleted))
+        });
+        println!("Result of the map {:?}", result);
+
+        result.and_then(|items| self.replace_whole(table, items, Action::Deleted))
     }
 
     fn map<T>(&self, table: u8, mut op: impl FnMut(&Vec<item::Item>) -> T) -> Result<T, String> {
@@ -169,18 +172,20 @@ mod tests {
         let mut res = Restaurant::new();
         res.tables.insert(1, Vec::new());
         match res.remove_item(1, Item::new("Test 1")._id){
-            Ok(Action::Deleted) => assert!(false),
-            Err(_) => assert!(true),
+            Ok(Action::Deleted) => assert!(true),
+            Err(_) => assert!(false),
             _a => panic!("This isn't right")
         };
+        println!("Everthing's fine so far");
+        println!("Items from table 1 {:?}", res.items_from_table(1));
         match res.items_from_table(1) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false)
+            Err(_) => assert!(false),
+            Ok(_) => assert!(true)
         }
     }
 
     #[test]
-    fn remove_items_from_non_empty_table_jto_empty() {
+    fn remove_items_from_non_empty_table_to_empty() {
         let mut res = Restaurant::new();
         let item = Item::new("Test 1");
         res.tables.insert(1,vec![item.clone()]);
@@ -190,8 +195,8 @@ mod tests {
             _a => panic!("This isn't right")
         };
         match res.items_from_table(1) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false)
+            Err(_) => assert!(false),
+            Ok(_) => assert!(true)
         }
     }
 
@@ -202,6 +207,7 @@ mod tests {
         let item2 = Item::new("Test 2");
         let item3 = Item::new("Test 3");
         res.tables.insert(1,vec![item.clone(), item2.clone(), item3.clone()]);
+        println!("Current items: {:?}", res.items_from_table(1));
         let expected = vec![item2, item3];
         match res.remove_item(1, item._id) {
             Ok(Action::Deleted) => assert!(true),
