@@ -50,7 +50,7 @@ impl Restaurant {
         result.and_then(|items| self.replace_whole(table, items, Action::Deleted))
     }
 
-    fn map<T>(&self, table: u8, mut op: impl FnMut(&Vec<item::Item>) -> T) -> Result<T, String> {
+    fn map<T>(&self, table: u8, op: impl Fn(&Vec<item::Item>) -> T) -> Result<T, String> {
         match self.tables.get(&table) {
             Some(items) => Ok(op(items)),
             None => Err("Table is empty".to_string()),
