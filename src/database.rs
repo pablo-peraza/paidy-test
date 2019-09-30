@@ -36,11 +36,11 @@ impl Restaurant {
     }
 
     pub fn add_items(&mut self, table: u8, items: Vec<item::Item>) -> Result<Action, String> {
+        println!("add_items");
         let result = self.map(table, |old_items| [old_items, &items[..]].concat());
-        match result {
-            Err(_) => self.replace_whole(table, items, Action::Inserted),
-            _ => Ok(Action::Inserted)
-        }
+        println!("Result of the map {:?}", result);
+        result.or(Ok(items)).and_then(|items_to_add| self.replace_whole(table, items_to_add, Action::Inserted))
+
     }
 
     pub fn remove_item(&mut self, table: u8, item_id: Uuid) -> Result<Action, String> {
@@ -53,6 +53,7 @@ impl Restaurant {
     }
 
     fn map<T>(&self, table: u8, mut op: impl FnMut(&Vec<item::Item>) -> T) -> Result<T, String> {
+        println!("executing map");
         match self.tables.get(&table) {
             Some(items) => Ok(op(items)),
             None => Err("Table is empty".to_string()),
@@ -60,6 +61,7 @@ impl Restaurant {
     }
 
     fn replace_whole(&mut self, table: u8, items: Vec<item::Item>, action: Action) -> Result<Action, String>{
+        println!("replace_whole {:?} - {:?}", action, items);
         self.tables.insert(table, items);
         Ok(action)
     }
@@ -114,10 +116,12 @@ mod tests {
         res.tables.insert(1, Vec::new());
         match res.add_items(1, vec![item.clone()]) {
             Ok(Action::Inserted) => assert!(true),
-            Err(_) => assert!(false),
+            Err(err) => assert!(false, err),
             _a => panic!("This isn't right")
         };
         let expected = vec![item];
+        let t: u8 = 1;
+        println!("Current contents {:?}", res.tables.get(&t));
         match res.items_from_table(1) {
             Ok(Action::Data(items)) => assert_eq!(items, expected),
             Err(_) => assert!(false),
@@ -131,11 +135,12 @@ mod tests {
         let item = Item::new("Test 1");
         let item2 = Item::new("Test 2");
         res.tables.insert(1,vec![item.clone()]);
-        match res.add_items(1, vec![item.clone()]) {
+        match res.add_items(1, vec![item2.clone()]) {
             Ok(Action::Inserted) => assert!(true),
             Err(_) => assert!(false),
             _a => panic!("This isn't right")
         };
+        println!("Everything's good so far");
         let expected = vec![item, item2];
         match res.items_from_table(1) {
             Ok(Action::Data(items)) => assert_eq!(items, expected),
