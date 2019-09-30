@@ -21,7 +21,7 @@ to see the output of the application
         * You probably want to introduce a database; but if that falls out of the scope of the test, at the very least have the Tables and Items have an unique and randomly generated identifier in order to properly support CRUD operations
         * Probably abstract away the data layer from the API layer (which currently is one and the same)
 
-2) Why do all of the functions for the Restaurant return a reference to a vector?  For the get it makes sense, but why the delete and add?
+2) Why do all of the functions for the Restaurant return a reference to a vector?  For the get it makes sense, but why the delete and add? `DONE`
 
    > It was a design decision in order to be able to get the current data from a table after each operation, without having to ask for the status. Obviously you don't actually need that (nor would you want to usually) but it was just a way of reducing the amount of calls I had to do (and to try to keep everything returning the same type; again, just a design decision at the time of writing but it is not necessary).
 
@@ -29,15 +29,15 @@ to see the output of the application
 
    > Version 1 didn't really support that operation in itself. What can be done is to remove the item, modify it, and then re-insert it, that's the only way with that code base.
 
-4) How can we change this to safely and consistently allow for deletion of a single order at a table when there are more than one of the same name (which happen to have the same cook time)?
+4) How can we change this to safely and consistently allow for deletion of a single order at a table when there are more than one of the same name (which happen to have the same cook time)? `DONE`
 
    > From answer 1, we need to implement an unique randomly-generated identifier for each dish. Another way of doing it is by using the position of each item as their own identifier.
 
-5) You have an "if/else" in the add_items func and both seem to call very similar code.  Can we make this a bit more functional?
+5) You have an "if/else" in the add_items func and both seem to call very similar code.  Can we make this a bit more functional? `DONE`
 
    > By introducing a function. Yes, somehow I missed that code repetition on the first try. Was probably too busy trying to get it to work.
 
-6) Why do you insist on cook time being equal to define item equality?
+6) Why do you insist on cook time being equal to define item equality? `DONE`
 
    > Since at the time the Items didn't have their own unique identifier, I figured it would be a good idea to consider both the name and the cook time for the equality function. There's no other reason than that.
 

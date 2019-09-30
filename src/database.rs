@@ -36,11 +36,8 @@ impl Restaurant {
     }
 
     pub fn add_items(&mut self, table: u8, items: Vec<item::Item>) -> Result<Action, String> {
-        println!("add_items");
         let result = self.map(table, |old_items| [old_items, &items[..]].concat());
-        println!("Result of the map {:?}", result);
         result.or(Ok(items)).and_then(|items_to_add| self.replace_whole(table, items_to_add, Action::Inserted))
-
     }
 
     pub fn remove_item(&mut self, table: u8, item_id: Uuid) -> Result<Action, String> {
@@ -50,13 +47,10 @@ impl Restaurant {
                 .map(|x| x.clone())
                 .collect()
         });
-        println!("Result of the map {:?}", result);
-
         result.and_then(|items| self.replace_whole(table, items, Action::Deleted))
     }
 
     fn map<T>(&self, table: u8, mut op: impl FnMut(&Vec<item::Item>) -> T) -> Result<T, String> {
-        println!("executing map");
         match self.tables.get(&table) {
             Some(items) => Ok(op(items)),
             None => Err("Table is empty".to_string()),
@@ -64,7 +58,6 @@ impl Restaurant {
     }
 
     fn replace_whole(&mut self, table: u8, items: Vec<item::Item>, action: Action) -> Result<Action, String>{
-        println!("replace_whole {:?} - {:?}", action, items);
         self.tables.insert(table, items);
         Ok(action)
     }
