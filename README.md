@@ -20,12 +20,13 @@ to see the output of the application
         * First, we need to have an actual API able to read from external data sources (usually REST nowadays)
         * You probably want to introduce a database; but if that falls out of the scope of the test, at the very least have the Tables and Items have an unique and randomly generated identifier in order to properly support CRUD operations
         * Probably abstract away the data layer from the API layer (which currently is one and the same)
+        * Another option, if we want to keep things simple, is to have a `loop` in the main process and have listeners or streams that listen to incomming requests. Those requests can be from network, or files dropped somewhere, or constatly looking into the database for example.
 
 2) Why do all of the functions for the Restaurant return a reference to a vector?  For the get it makes sense, but why the delete and add? `DONE`
 
    > It was a design decision in order to be able to get the current data from a table after each operation, without having to ask for the status. Obviously you don't actually need that (nor would you want to usually) but it was just a way of reducing the amount of calls I had to do (and to try to keep everything returning the same type; again, just a design decision at the time of writing but it is not necessary).
 
-3) How would we update items in the Restaurant?
+3) How would we update items in the Restaurant? `DONE`
 
    > Version 1 didn't really support that operation in itself. What can be done is to remove the item, modify it, and then re-insert it, that's the only way with that code base.
 
