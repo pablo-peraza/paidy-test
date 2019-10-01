@@ -1,5 +1,6 @@
 use actix_web::{web, guard, App, HttpResponse, HttpRequest, HttpServer, Responder, middleware};
 use std::sync::{Arc, Mutex};
+use uuid::Uuid;
 use super::database;
 use super::item;
 
@@ -57,12 +58,29 @@ fn insert(req: HttpRequest,
     }
 }
 
-fn update() -> impl Responder {
-    HttpResponse::Ok().body("Hello world again!")
+fn update(req: HttpRequest,
+    item: web::Json<item::ItemPayload>,
+    data: web::Data<Arc<Mutex<database::Restaurant>>>) -> impl Responder {
+    let table: u8 = req.match_info().get("table").unwrap().parse::<u8>().unwrap();
+    let item_id: Uuid = Uuid::parse_str(req.match_info().get("item_id").unwrap()).unwrap();
+
+    match data.lock().unwrap().update_item(table, item_id, item::Item::from_payload(item.0)) {
+        Ok(database::Action::Updated) => HttpResponse::Ok().body("Updated"),
+        Err(err) => HttpResponse::InternalServerError().body(err),
+        _ => HttpResponse::InternalServerError().body("This shouldn't happen")
+    }
 }
 
-fn delete() -> impl Responder {
-    HttpResponse::Ok().body("Hello world again!")
+fn delete(req: HttpRequest,
+    data: web::Data<Arc<Mutex<database::Restaurant>>>) -> impl Responder {
+    let table: u8 = req.match_info().get("table").unwrap().parse::<u8>().unwrap();
+    let item_id: Uuid = Uuid::parse_str(req.match_info().get("item_id").unwrap()).unwrap();
+
+    match data.lock().unwrap().remove_item(table, item_id) {
+        Ok(database::Action::Deleted) => HttpResponse::Ok().body("Deleted"),
+        Err(err) => HttpResponse::InternalServerError().body(err),
+        _ => HttpResponse::InternalServerError().body("This shouldn't happen")
+    }
 }
 
 fn items_table(req: HttpRequest, data: web::Data<Arc<Mutex<database::Restaurant>>>) -> impl Responder {
@@ -72,7 +90,7 @@ fn items_table(req: HttpRequest, data: web::Data<Arc<Mutex<database::Restaurant>
             let i = items;
             HttpResponse::Ok().json(i)
         },
-        _ => HttpResponse::Ok().body(vec![])
+        _ => HttpResponse::Ok().body("Table is empty")
     }
 }
 

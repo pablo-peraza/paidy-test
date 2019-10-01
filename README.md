@@ -13,7 +13,7 @@ to see the output of the application
 
 # First revision questions
 
-1) How can we change this to create a server process?  Currently, the main app creates a data structure for the "restaurant" and then launches a number of clients to bang on the data structure at various times.  It's okay to not use a web server for this test and instead use a direct API, but what will we need to change to get a standalone server thread running?  What implications would arise from this?
+1) How can we change this to create a server process?  Currently, the main app creates a data structure for the "restaurant" and then launches a number of clients to bang on the data structure at various times.  It's okay to not use a web server for this test and instead use a direct API, but what will we need to change to get a standalone server thread running?  What implications would arise from this? `DONE`
 
    > There's a lot of things that need to change in order to create a server:
 
@@ -42,7 +42,7 @@ to see the output of the application
 
    > Since at the time the Items didn't have their own unique identifier, I figured it would be a good idea to consider both the name and the cook time for the equality function. There's no other reason than that.
 
-7) Can we make a service for this, which we can use to expose to a webservice endpoint?  How would that look?  How can we handle having a global data storage in such an environment (and still remain functional)?  What might that mean for returning references in your function calls?  How can we help resolve any problems?
+7) Can we make a service for this, which we can use to expose to a webservice endpoint?  How would that look?  How can we handle having a global data storage in such an environment (and still remain functional)?  What might that mean for returning references in your function calls?  How can we help resolve any problems? `DONE`
 
    > Yes. Will need to use a library for abstracting the HTTP stuff. Since we are now going to serialize the data into the http response, those references can now be copies or dereferences of the original one (when returning)
 
