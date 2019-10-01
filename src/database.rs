@@ -27,7 +27,7 @@ impl Restaurant {
     }
 
     pub fn update_item(&mut self, table: u8, item_id: Uuid, item: item::Item ) -> Result<Action, String> {
-        let result =self.map(table, |old_items| -> Vec<item::Item> {
+        let result = self.map(table, |old_items| -> Vec<item::Item> {
             old_items
                 .iter()
                 .map(|x| (if x._id == item_id { &item } else { x }).clone() )

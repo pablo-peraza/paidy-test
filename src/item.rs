@@ -2,11 +2,19 @@ use rand::Rng;
 use std::cmp::PartialEq;
 use uuid::Uuid;
 
-#[derive(Debug)]
+use serde_derive::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
     pub name: String,
     pub cook_time: u32,
     pub _id: Uuid
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ItemPayload {
+    pub name: String,
+    pub cook_time: u32
 }
 
 impl Item {
@@ -14,6 +22,14 @@ impl Item {
         Item {
             name: name.to_owned(),
             cook_time: rand::thread_rng().gen_range(5, 16),
+            _id: Uuid::new_v4()
+        }
+    }
+
+    pub fn from_payload(json: ItemPayload) -> Item {
+        Item {
+            name: json.name,
+            cook_time: json.cook_time,
             _id: Uuid::new_v4()
         }
     }

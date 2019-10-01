@@ -4,8 +4,13 @@ use std::thread;
 mod client;
 mod database;
 mod item;
+mod server;
 
 fn main() {
+    server::init();
+}
+
+pub fn original_simulation() {
     let restaurant = Arc::new(Mutex::new(database::Restaurant::new()));
 
     let mut handles = vec![];
