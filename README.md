@@ -46,6 +46,6 @@ to see the output of the application
 
    > Yes. Will need to use a library for abstracting the HTTP stuff. Since we are now going to serialize the data into the http response, those references can now be copies or dereferences of the original one (when returning)
 
-8) The main is allowed to just be a simple test, for sure, but as an exercise, is there  a way to make it more flexible?  Like read in some config file, or some parameters?  It seems like that would be a necessary step anyways, if we needed to turn this into a full-fledged server.
+8) The main is allowed to just be a simple test, for sure, but as an exercise, is there  a way to make it more flexible?  Like read in some config file, or some parameters?  It seems like that would be a necessary step anyways, if we needed to turn this into a full-fledged server. `DONE`
 
    > Yes. Usually we want to read `environment variables` for different parameters of the application.

@@ -7,7 +7,10 @@ mod item;
 mod server;
 
 fn main() {
-    server::init();
+    match std::env::var("PORT") {
+        Ok(port) => server::init(port),
+        Err(_) => panic!("The environment variable `PORT` is not defined")
+    }
 }
 
 pub fn original_simulation() {

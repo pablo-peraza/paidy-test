@@ -4,10 +4,11 @@ use uuid::Uuid;
 use super::database;
 use super::item;
 
-pub fn init() {
+pub fn init(port: String) {
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-    let bind_ip = "127.0.0.1:8088";
+    let bind_ip = ["127.0.0.1", &port].join(":");
+    println!("Server will run on {}", &bind_ip);
     let restaurant_mutex = Arc::new(Mutex::new(database::Restaurant::new()));
     let restaurant_data = web::Data::new(restaurant_mutex);
     let temp = HttpServer::new(move || {
@@ -42,7 +43,6 @@ pub fn init() {
     .unwrap()
     .run()
     .unwrap();
-    println!("Server started and running on {}", bind_ip);
     temp
 }
 
